@@ -1,9 +1,12 @@
 from math import prod
+import math
 import re
 
 
 width = 101
 height = 103
+# width = 11
+# height = 7
 
 class Robot:
     def __init__(self, x, y, velocity):
@@ -56,48 +59,84 @@ def robotsToString(robots: list):
     return endStr
 
 
+def part1():
+    seconds = 100
+    i = 0
+    while i <= seconds:
+        # print("Second", i)
+        for robot in robots:
+            robot.move()
+            # print(robot.x, robot.y)
 
-seconds = 10000
-i = 7000
-while i <= seconds:
-    # print("Second", i)
-    for robot in robots:
-        robot.move()
-        # print(robot.x, robot.y)
+        # Count robots
+        counts = [0] * 4
+        halfWidth = width // 2
+        halfHeight = height // 2
+        for robot in robots:
+            # Top Left
+            if 0 <= robot.x < halfWidth and 0 <= robot.y < halfHeight:
+                counts[0] += 1
+            
+            # Top Right
+            if halfWidth < robot.x < width and 0 <= robot.y < halfHeight:
+                counts[1] += 1
 
-    # Count robots
-    # counts = [0] * 4
-    # halfWidth = width // 2
-    # halfHeight = height // 2
-    # for robot in robots:
-    #     # Top Left
-    #     if 0 <= robot.x < halfWidth and 0 <= robot.y < halfHeight:
-    #         counts[0] += 1
-        
-    #     # Top Right
-    #     if halfWidth < robot.x < width and 0 <= robot.y < halfHeight:
-    #         counts[1] += 1
+            # Bottom RIght
+            if halfWidth < robot.x < width and halfHeight < robot.y < height:
+                counts[2] += 1
 
-    #     # Bottom RIght
-    #     if halfWidth < robot.x < width and halfHeight < robot.y < height:
-    #         counts[2] += 1
+            # Bottom Left
+            if 0 <= robot.x < halfWidth and halfHeight < robot.y < height:
+                counts[3] += 1
 
-    #     # Bottom Left
-    #     if 0 <= robot.x < halfWidth and halfHeight < robot.y < height:
-    #         counts[3] += 1
-
-
-    if 7840 < i < 7850:
         print(robotsToString(robots))
-        hello = re.findall(r"(\d{5})", robotsToString(robots))
-        print(hello)
-        if len(hello) > 5:
-            # print(i, counts)
-            # print(robotsToString(robots))
+        i += 1
+        
+    print("Safety Factor:", prod(counts))
+
+
+def calculate_average_distance(robots):
+    n = len(robots)
+    if n < 2:
+        return 0  # No distance to measure with less than 2 robots
+
+    total_distance = 0
+    count = 0
+
+    # Calculate pairwise distances
+    for i in range(n):
+        for j in range(i + 1, n):
+            robot1 = robots[i]
+            robot2 = robots[j]
+            distance = math.sqrt((robot2.x - robot1.x) ** 2 + (robot2.y - robot1.y) ** 2)
+            total_distance += distance
+            count += 1
+
+    # Average pairwise distance
+    return total_distance / count
+
+
+def part2():
+    seconds = 8000
+    i = 0
+    while i <= seconds:
+        print("Second", i)
+        for robot in robots:
+            robot.move()
+            # print(robot.x, robot.y)
+
+        i += 1
+
+        if i < 6000:
+            continue
+
+        avgDist = calculate_average_distance(robots)
+
+        if avgDist < 36:
+            print(i, avgDist)
+            print(robotsToString(robots))
             break
 
-    i += 1
-    # if counts[0] > 250 or counts[1] > 250 or counts[2] > 250 or counts[3] > 250:
+# part1()
+part2()
 
-    
-# print("Safety Factor:", prod(counts))
