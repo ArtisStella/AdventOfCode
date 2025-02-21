@@ -17,6 +17,7 @@ with open("2024/D17/input.txt") as inFile:
 
 print(registers)
 print(program)
+print()
 
 
 def comboOperand(value):
@@ -31,7 +32,7 @@ def comboOperand(value):
 
 
 def adv(operand):
-    registers["A"] = registers["A"] // 2**comboOperand(operand)
+    registers["A"] = registers["A"] >> comboOperand(operand)
 
 def bxl(operand):
     registers["B"] = registers["B"] ^ operand
@@ -41,10 +42,8 @@ def bst(operand):
 
 def jnz(operand):
     global pointer
-    
     if registers["A"] == 0:
         return
-    
     pointer = operand
 
 def bxc(operand):
@@ -54,10 +53,10 @@ def out(operand):
     programOutput.append(comboOperand(operand) % 8)
 
 def bdv(operand):
-    registers["B"] = registers["A"] // 2**comboOperand(operand)
+    registers["B"] = registers["A"] >> comboOperand(operand)
 
 def cdv(operand):
-    registers["C"] = registers["A"] // 2**comboOperand(operand)
+    registers["C"] = registers["A"] >> comboOperand(operand)
 
 
 instructionMap = {
@@ -71,8 +70,11 @@ instructionMap = {
     7: cdv
 }
 
-currentA = oRegisters["A"]
-while True:
+
+def runProgram(a):
+    global programOutput, registers, pointer
+
+    currentA = a
     registers = deepcopy(oRegisters)
     registers["A"] = currentA
 
@@ -81,23 +83,19 @@ while True:
 
     while pointer < len(program):
         instruction, operand = program[pointer], program[pointer+1]
-        
         pointer += 2
-
         instructionMap[instruction](operand)
 
-    print(currentA, ": ", ",".join([str(output) for output in programOutput]))
-        
-    if programOutput == program:
-        break
-    
-    break
-    currentA += 3
+    # print(currentA, ": ", ",".join([str(output) for output in programOutput]))
+
+    return programOutput
 
 
-print(currentA)
+a = 0
+for i in reversed(range(len(program))):
+    a <<= 3
+    programOutput = []
+    while runProgram(a) != program[i:]:
+        a += 1
 
-def eq(A):
-    return (((A // 2**((A % 8) ^ 4)) ^ ((A % 8) ^ 4)) ^ 4) % 8
-
-print(eq(8))
+print("Part 2:", a)

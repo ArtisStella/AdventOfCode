@@ -1,4 +1,5 @@
 from copy import deepcopy
+from itertools import combinations
 
 
 with open("2024/D12/input.txt") as inFile:
@@ -19,10 +20,6 @@ directions = [
     (0, -1),
     (-1, 0)
 ]
-
-print(plants)
-for line in farm:
-    print(line)
 
 
 def getRegionStart(plant, visited):
@@ -75,92 +72,64 @@ def getRegions():
     return regions
 
 
-print("\n")
+def isInBounds(pos):
+    return 0 <= pos[0] < farmSize and 0 <= pos[1] < farmSize
+
+
+corners = [
+    (1, 1),
+    (1, -1),
+    (-1, 1),
+    (-1, -1),
+]
+
+
 totalPrice = 0
-numSides = 0
+bulkPrice = 0
 regions = getRegions()
 for region in regions:
     farm = deepcopy(oFarm)
     plant = farm[region[0][0]][region[0][1]]
-    print("Plant:", plant)
 
     area = len(region)
     perim = 0
+    sides = 0
 
-    edges = {}
     for spot in region:
-        edges[spot] = []
-
+        neighbors = []
         for direction in directions:
-            otherSpot = (direction[0] + spot[0], direction[1] + spot[1])
+            dx, dy = (direction[0] + spot[0], direction[1] + spot[1])
 
-            if 0 <= otherSpot[0] < farmSize and 0 <= otherSpot[1] < farmSize:
-                otherLand = farm[otherSpot[0]][otherSpot[1]]
-                if otherLand != plant:
-                    perim += 1
-                    if direction == (-1, 0):
-                        edges[spot].append("TOP")
-                    if direction == (1, 0):
-                        edges[spot].append("BOTTOM")
-                    if direction == (0, -1):
-                        edges[spot].append("LEFT")
-                    if direction == (0, 1):
-                        edges[spot].append("RIGHT")
-            else:
-                if 0 > otherSpot[0]:
-                    edges[spot].append("TOP")
-                if otherSpot[0] >= farmSize:
-                    edges[spot].append("BOTTOM")
-                if 0 > otherSpot[1]:
-                    edges[spot].append("LEFT")
-                if otherSpot[1] >= farmSize:
-                    edges[spot].append("RIGHT")
+            if not isInBounds((dx, dy)) or farm[dx][dy] != plant:
                 perim += 1
-    
-    print(edges)
-                
-    noOfEdges = 0
-    counted = set()
-    for spot, curEdges in edges.items():
-        if noOfEdges == 0:
-            for e in curEdges:
-                if e == "LEFT":
-                    counted.add(str(spot[1]) + e)
-                if e == "RIGHT":
-                    counted.add(str(spot[1]) + e)
-                if e == "TOP":
-                    counted.add(str(spot[0]) + e)
-                if e == "BOTTOM":
-                    counted.add(str(spot[0]) + e)
+                continue
 
-            noOfEdges = len(curEdges)
+            neighbors.append((dx, dy))
+
+        if len(neighbors) == 0:
+            sides += 4
+
+        if len(neighbors) == 1:
+            sides += 2
         
-        for direction in directions:
-            otherSpot = (direction[0] + spot[0], direction[1] + spot[1])
-            if otherSpot not in edges:
+        neighborPairs = list(combinations(neighbors, 2))
+        for n1, n2 in neighborPairs:
+            x1, y1 = n1
+            x2, y2 = n2
+
+            if x1 == x2 or y1 == y2:
                 continue
             
-            for e in edges[otherSpot]:
-                if str(otherSpot[0]) + e in counted or str(otherSpot[1]) + e in counted:
-                    continue
-                
-                if e == "LEFT":
-                    counted.add(str(otherSpot[1]) + e)
-                if e == "RIGHT":
-                    counted.add(str(otherSpot[1]) + e)
-                if e == "TOP":
-                    counted.add(str(otherSpot[0]) + e)
-                if e == "BOTTOM":
-                    counted.add(str(otherSpot[0]) + e)
+            if len(neighbors) == 2:
+                sides += 1
+            
+            cx, cy = (x2, y1) if (x2, y1) != spot else (x1, y2)
 
-                if e not in curEdges:    
-                    noOfEdges += 1
-                    # edges[spot].remove(e)
+            if farm[cx][cy] != plant:
+                sides += 1
 
-    print("No of Edges:", noOfEdges)
-    print()
-
-    # print("Area:", area, " Perimiter:", perim)
     totalPrice += area * perim
+    bulkPrice += area * sides
 
 print("Total Price", totalPrice)
+print("Total Price", bulkPrice)
